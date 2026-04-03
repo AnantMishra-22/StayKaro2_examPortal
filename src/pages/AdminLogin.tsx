@@ -86,7 +86,7 @@ export default function AdminLogin() {
 
           {/* Hint */}
           <div style={{ marginTop: 20, padding: '10px 14px', background: 'rgba(0,200,255,0.04)', borderRadius: 6, border: '1px solid rgba(0,200,255,0.1)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Test: admin@srisoultech.com / password123</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Test: realadmin@srisoultech.com / password123</p>
           </div>
         </div>
 
