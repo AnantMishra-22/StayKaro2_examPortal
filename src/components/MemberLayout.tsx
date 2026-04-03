@@ -1,4 +1,4 @@
-import React from 'react';
+import  from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Globe, LogOut, Trophy, ChevronDown } from 'lucide-react';
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { notificationsApi } from '../lib/api/notifications';
 import { Send, CheckCircle, Bell } from 'lucide-react';

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import MemberLayout from '../components/MemberLayout';
 import { useAuth } from '../context/AuthContext';
 import { membersApi } from '../lib/api/members';
 import { examsApi } from '../lib/api/exams';
 import { sessionsApi } from '../lib/api/sessions';
 import { useNavigate } from 'react-router-dom';
-import { Clock, BookOpen, Trophy, Star, ChevronRight, Calendar, Play } from 'lucide-react';
+import { Clock, BookOpen, Trophy, Star, ChevronRight, Play } from 'lucide-react';
 
 export default function MemberDashboard() {
   const navigate = useNavigate();

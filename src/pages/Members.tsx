@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { membersApi } from '../lib/api/members';
 import { Search, Plus, Upload, Download, Edit2, Trash2, Camera, CheckSquare } from 'lucide-react';

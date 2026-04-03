@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 
-export const questionsApi = {
+export const questionsApi: any = {
   async getAll(filters?: { subjectId?: string; difficulty?: string; search?: string }) {
     let query = supabase
       .from('questions')

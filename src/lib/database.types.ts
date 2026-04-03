@@ -121,6 +121,21 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['ticker_messages']['Row'], 'id' | 'created_at'>;
         Update: Partial<Database['public']['Tables']['ticker_messages']['Insert']>;
       };
+      exam_permissions: {
+        Row: { exam_id: string; member_id: string; };
+        Insert: { exam_id: string; member_id: string; };
+        Update: { exam_id?: string; member_id?: string; };
+      };
+      member_notifications: {
+        Row: { notification_id: string; member_id: string; is_read: boolean; created_at: string; };
+        Insert: { notification_id: string; member_id: string; is_read?: boolean; created_at?: string; };
+        Update: { notification_id?: string; member_id?: string; is_read?: boolean; created_at?: string; };
+      };
+      activity_feed: {
+        Row: { id: string; event_type: string; member_id: string; exam_id: string | null; description: string; created_at: string; };
+        Insert: { event_type: string; member_id: string; exam_id?: string | null; description: string; };
+        Update: { event_type?: string; member_id?: string; exam_id?: string | null; description?: string; };
+      };
     };
     Views: {
       v_leaderboard: {
