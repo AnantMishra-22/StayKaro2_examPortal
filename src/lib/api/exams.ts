@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 export const examsApi = {
   async getAll() {
     const { data, error } = await supabase
-      .from('exams').select('*, subjects(name)').order('created_at', { ascending: false });
+      .from('exams').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },

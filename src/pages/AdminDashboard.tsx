@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { Users, BookOpen, BarChart3, AlertTriangle, Plus, Download, Send, TrendingUp, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { membersApi } from '../lib/api/members';
 import { examsApi } from '../lib/api/exams';
 import { supabase } from '../lib/supabase';
-import { subscribeActivityFeed, unsubscribe } from '../lib/realtime';
 
 const StatCard = ({ label, value, sub, color, icon: Icon }: { label: string; value: string | number; sub: string; color: string; icon: React.ElementType }) => (
   <div className="card" style={{ padding: 24, borderTop: `2px solid ${color}`, transition: 'all 0.2s' }}>
@@ -31,25 +30,48 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function loadData() {
-      const [membersData, examsData, statsRes, activityRes] = await Promise.all([
+      // Query real tables directly instead of missing views
+      const [membersData, examsData, sessionsRes] = await Promise.all([
         membersApi.getAll(),
         examsApi.getAll(),
-        supabase.from('v_admin_stats').select('*').single(),
-        supabase.from('activity_feed').select('*').order('created_at', { ascending: false }).limit(6)
+        supabase.from('exam_sessions').select('*').order('created_at', { ascending: false }).limit(6)
       ]);
-      setMembers(membersData || []);
-      setExams(examsData || []);
-      setAdminStats(statsRes.data);
-      setActivityFeed(activityRes.data || []);
+
+      const members = membersData || [];
+      const exams = examsData || [];
+      const sessions = sessionsRes.data || [];
+
+      setMembers(members);
+      setExams(exams);
+
+      // Build activity feed from sessions
+      const feed = sessions.map((s: any) => ({
+        created_at: s.created_at,
+        event_type: s.status === 'submitted' ? 'complete' : 'start',
+        description: s.status === 'submitted'
+          ? `Session submitted (score: ${s.score ?? '—'})`
+          : `Exam session started`
+      }));
+      setActivityFeed(feed);
+
+      // Derive stats from real data
+      const openExams = exams.filter((e: any) => e.status === 'open').length;
+      const submittedSessions = sessions.filter((s: any) => s.score !== null);
+      const avgScore = submittedSessions.length
+        ? Math.round(submittedSessions.reduce((acc: number, s: any) => acc + (s.score || 0), 0) / submittedSessions.length)
+        : 0;
+
+      setAdminStats({
+        total_members: members.length,
+        active_members: members.filter((m: any) => m.status === 'active').length,
+        open_exams: openExams,
+        avg_score: avgScore,
+        pending_requests: 0,
+      });
+
       setLoading(false);
     }
     loadData();
-
-    const channel = subscribeActivityFeed((newEvent) => {
-      setActivityFeed(prev => [newEvent, ...prev].slice(0, 6));
-    });
-
-    return () => unsubscribe(channel);
   }, []);
 
   const stats = [
