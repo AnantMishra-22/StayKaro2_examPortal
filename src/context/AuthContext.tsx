@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import type { User, Session } from '@supabase/supabase-js';
 
 interface Profile {
   id: string; role: 'admin' | 'member'; full_name: string;
@@ -9,61 +8,98 @@ interface Profile {
 }
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: { id: string; email: string } | null;
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
   isMember: boolean;
-  signOut: () => Promise<void>;
+  signIn: (email: string, password: string, role: 'admin' | 'member') => Promise<{ error: string | null }>;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
+// Hardcoded demo users — real Supabase auth users were corrupted by SQL seed
+// All data (exams, sessions, questions) still fetched live from Supabase DB
+const DEMO_USERS: Record<string, { password: string; profile: Profile }> = {
+  'admin@srisoultech.com': {
+    password: 'admin123',
+    profile: {
+      id: 'a1aa1111-1a1a-1111-a1a1-111111111110',
+      role: 'admin',
+      full_name: 'System Admin',
+      member_code: 'ADM001',
+      status: 'active',
+      photo_url: null,
+      exams_taken: 0,
+      avg_score: 0,
+    },
+  },
+  'member@srisoultech.com': {
+    password: 'member123',
+    profile: {
+      id: 'a2aa2222-2a2a-2222-a2a2-222222222220',
+      role: 'member',
+      full_name: 'Test Student',
+      member_code: 'STU001',
+      status: 'active',
+      photo_url: null,
+      exams_taken: 5,
+      avg_score: 78.4,
+    },
+  },
+};
+
+const SESSION_KEY = 'sst_session';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }: any) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else {
-        setProfile(null);
-        setLoading(false);
+    // Restore session from localStorage on page load
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const { email, profile: p } = JSON.parse(raw);
+        setUser({ id: p.id, email });
+        setProfile(p);
+        // Also try to refresh latest profile from Supabase DB
+        supabase.from('profiles').select('*').eq('id', p.id).single().then(({ data }) => {
+          if (data) setProfile(data as Profile);
+        });
       }
-    });
-
-    return () => subscription.unsubscribe();
+    } catch { /* ignore */ }
+    setLoading(false);
   }, []);
 
-  async function fetchProfile(userId: string) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
-    setProfile(data as Profile | null);
-    setLoading(false);
-  }
+  const signIn = async (email: string, password: string, role: 'admin' | 'member') => {
+    const normalized = email.toLowerCase().trim();
+    const demo = DEMO_USERS[normalized];
+    if (!demo) return { error: 'Account not found. Use admin@srisoultech.com or member@srisoultech.com' };
+    if (demo.password !== password) return { error: 'Incorrect password.' };
+    if (demo.profile.role !== role) return { error: `This account is not a ${role}.` };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+    const sessionData = { email: normalized, profile: demo.profile };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+    setUser({ id: demo.profile.id, email: normalized });
+    setProfile(demo.profile);
+    return { error: null };
+  };
+
+  const signOut = () => {
+    localStorage.removeItem(SESSION_KEY);
+    setUser(null);
     setProfile(null);
   };
 
   return (
     <AuthContext.Provider value={{
-      user, session, profile, loading,
+      user, profile, loading,
       isAdmin: profile?.role === 'admin',
       isMember: profile?.role === 'member',
-      signOut,
+      signIn, signOut,
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Shield, AlertCircle, ChevronRight } from 'lucide-react';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
@@ -14,14 +15,9 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: form.email,
-      password: form.password
-    });
-
-    if (authError) {
-      setError(authError.message);
+    const { error: err } = await signIn(form.email, form.password, 'admin');
+    if (err) {
+      setError(err);
     } else {
       navigate('/admin/dashboard');
     }
@@ -86,7 +82,7 @@ export default function AdminLogin() {
 
           {/* Hint */}
           <div style={{ marginTop: 20, padding: '10px 14px', background: 'rgba(0,200,255,0.04)', borderRadius: 6, border: '1px solid rgba(0,200,255,0.1)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Test: realadmin@srisoultech.com / password123</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Demo: admin@srisoultech.com / admin123</p>
           </div>
         </div>
 
