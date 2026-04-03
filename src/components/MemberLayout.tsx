@@ -1,6 +1,6 @@
-import  from 'react';
+
 import { useNavigate } from 'react-router-dom';
-import { Bell, Globe, LogOut, Trophy, ChevronDown } from 'lucide-react';
+import { Bell, LogOut, Trophy } from 'lucide-react';
 
 interface MemberLayoutProps {
   children: React.ReactNode;
