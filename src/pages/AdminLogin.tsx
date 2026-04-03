@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { Eye, EyeOff, Shield, AlertCircle, ChevronRight } from 'lucide-react';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ id: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,11 +14,16 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    await new Promise(r => setTimeout(r, 1000));
-    if (form.id === 'admin' && form.password === 'admin123') {
-      navigate('/admin/dashboard');
+    
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password
+    });
+
+    if (authError) {
+      setError(authError.message);
     } else {
-      setError('Invalid credentials. Use admin / admin123');
+      navigate('/admin/dashboard');
     }
     setLoading(false);
   };
@@ -52,9 +58,9 @@ export default function AdminLogin() {
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.1em', color: 'var(--color-text-secondary)', marginBottom: 8 }}>ADMIN ID</label>
-              <input className="input" type="text" placeholder="Enter admin ID" value={form.id}
-                onChange={e => setForm(f => ({ ...f, id: e.target.value }))} required />
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.1em', color: 'var(--color-text-secondary)', marginBottom: 8 }}>ADMIN EMAIL</label>
+              <input className="input" type="email" placeholder="admin@srisoultech.com" value={form.email}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
             </div>
             <div>
               <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.1em', color: 'var(--color-text-secondary)', marginBottom: 8 }}>PASSWORD</label>
@@ -80,7 +86,7 @@ export default function AdminLogin() {
 
           {/* Hint */}
           <div style={{ marginTop: 20, padding: '10px 14px', background: 'rgba(0,200,255,0.04)', borderRadius: 6, border: '1px solid rgba(0,200,255,0.1)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Demo: admin / admin123</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Test: admin@srisoultech.com / password123</p>
           </div>
         </div>
 

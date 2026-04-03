@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { Eye, EyeOff, UserCircle, ChevronRight, Trophy, BookOpen, Star } from 'lucide-react';
 
 export default function MemberLogin() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ code: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,11 +14,16 @@ export default function MemberLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    await new Promise(r => setTimeout(r, 1000));
-    if (form.code === 'SST-0042' && form.password === 'ravi123') {
-      navigate('/member/dashboard');
+    
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password
+    });
+
+    if (authError) {
+      setError(authError.message);
     } else {
-      setError('Invalid member code or password. Use SST-0042 / ravi123');
+      navigate('/member/dashboard');
     }
     setLoading(false);
   };
@@ -61,9 +67,9 @@ export default function MemberLogin() {
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.1em', color: 'var(--color-text-secondary)', marginBottom: 8 }}>MEMBER CODE</label>
-              <input className="input" type="text" placeholder="e.g. SST-0042" value={form.code}
-                onChange={e => setForm(f => ({ ...f, code: e.target.value }))} required />
+              <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.1em', color: 'var(--color-text-secondary)', marginBottom: 8 }}>MEMBER EMAIL</label>
+              <input className="input" type="email" placeholder="member@srisoultech.com" value={form.email}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
             </div>
             <div>
               <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.1em', color: 'var(--color-text-secondary)', marginBottom: 8 }}>PASSWORD</label>
@@ -105,7 +111,7 @@ export default function MemberLogin() {
 
           {/* Demo hint */}
           <div style={{ marginTop: 16, padding: '10px 14px', background: 'rgba(0,200,255,0.04)', borderRadius: 6, border: '1px solid rgba(0,200,255,0.1)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Demo: SST-0042 / ravi123</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-disabled)' }}>Test: member@srisoultech.com / password123</p>
           </div>
         </div>
 
